@@ -239,9 +239,12 @@
         const isBattle = card.startsWith('battle');
         const isCaptain = card === 'captain';
 
+        const isStorm = card === 'storm';
+        const islandThreshold = isStorm ? 3 : 4;
+
         if (totalSkulls >= 3 && !isBattle) {
             isBust = true;
-            if (totalSkulls >= 4) {
+            if (totalSkulls >= islandThreshold) {
                 isIsland = true;
             }
         }
@@ -324,15 +327,18 @@
                 }
             }
 
-            const diamondBonus = effectiveCounts.diamond * 100;
+            const gemValue = isStorm ? 200 : 100;
+            const diamondBonus = effectiveCounts.diamond * gemValue;
             if (diamondBonus > 0) {
-                breakdown.push({ label: `💎 בונוס יהלומים ×${effectiveCounts.diamond}`, value: diamondBonus });
+                const gemLabel = isStorm ? ` (×${gemValue})` : '';
+                breakdown.push({ label: `💎 בונוס יהלומים ×${effectiveCounts.diamond}${gemLabel}`, value: diamondBonus });
                 totalScore += diamondBonus;
             }
 
-            const goldBonus = effectiveCounts.gold * 100;
+            const goldBonus = effectiveCounts.gold * gemValue;
             if (goldBonus > 0) {
-                breakdown.push({ label: `💰 בונוס זהב ×${effectiveCounts.gold}`, value: goldBonus });
+                const gemLabel = isStorm ? ` (×${gemValue})` : '';
+                breakdown.push({ label: `💰 בונוס זהב ×${effectiveCounts.gold}${gemLabel}`, value: goldBonus });
                 totalScore += goldBonus;
             }
 
@@ -553,6 +559,7 @@
             monkey_business: '🐵🦜 קופים ותוכים נספרים כאותו סוג לצורך סדרות!',
             sorceress: '🧙‍♀️ ניתן להחזיר גולגולת אחת. אל תספור אותה בקוביות.',
             treasure_chest: '📦 קוביות שנשמרו בתיבת האוצר מוגנות. סמן למטה אילו קוביות שמרת.',
+            storm: '🌊 סופה! יהלומים וזהב שווים 200 כל אחד. 3 גולגולות = אי הגולגולות!',
             seven_weapons: '🗡️ שביתת נשק! אם תשיג 7 חרבות או יותר, תקבל בונוס 500 נקודות!',
             battle2: '⚔️ צריך לפחות 2 חרבות. הצלחה = +200, כישלון = -200.',
             battle3: '⚔️ צריך לפחות 3 חרבות. הצלחה = +500, כישלון = -500.',
@@ -638,6 +645,7 @@
             monkey_business: '🐵',
             sorceress: '🧙‍♀️',
             treasure_chest: '📦',
+            storm: '🌊',
             seven_weapons: '🗡️',
             battle2: '⚔️×2',
             battle3: '⚔️×3',
