@@ -362,6 +362,18 @@ body {
     margin-bottom: 10px;
 }
 
+.bottom-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.bottom-actions .btn {
+    flex: 1;
+    font-size: 0.85rem;
+    padding: 10px 8px;
+}
+
 /* Modal */
 .modal {
     display: none;

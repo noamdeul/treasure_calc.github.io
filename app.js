@@ -172,12 +172,7 @@
     }
 
     function getMaxDice() {
-        const card = $('#fortune-card').value;
-        let max = 8;
-        if (card === 'gold' || card === 'diamond') max = 9;
-        if (card === 'skull1') max = 9;
-        if (card === 'skull2') max = 10;
-        return max;
+        return 8;
     }
 
     function updateDiceRemaining() {
@@ -259,6 +254,25 @@
                 const penalty = -BATTLE_REWARDS[card];
                 breakdown.push({ label: '⚔️ כישלון בקרב ימי', value: penalty });
                 totalScore = penalty;
+            } else if (card === 'treasure_chest') {
+                const chest = getChestCounts();
+                const chestDiamonds = chest['chest-diamond'] || 0;
+                const chestGold = chest['chest-gold'] || 0;
+                const chestSwords = chest['chest-sword'] || 0;
+                const chestTotal = chestDiamonds + chestGold + chestSwords;
+                if (chestTotal > 0) {
+                    const chestDiamondBonus = chestDiamonds * 100;
+                    const chestGoldBonus = chestGold * 100;
+                    if (chestDiamondBonus > 0) {
+                        breakdown.push({ label: `📦💎 יהלומים בתיבה ×${chestDiamonds}`, value: chestDiamondBonus });
+                        totalScore += chestDiamondBonus;
+                    }
+                    if (chestGoldBonus > 0) {
+                        breakdown.push({ label: `📦💰 זהב בתיבה ×${chestGold}`, value: chestGoldBonus });
+                        totalScore += chestGoldBonus;
+                    }
+                    breakdown.push({ label: '📦 קוביות שמורות מתיבת האוצר', value: 0 });
+                }
             } else {
                 totalScore = 0;
             }
@@ -333,11 +347,9 @@
                 }
             }
 
-            const totalDiceUsed = Object.values(effectiveCounts).reduce((a, b) => a + b, 0) - effectiveCounts.skull;
-            const totalAllDice = card === 'gold' || card === 'diamond' ? 9 :
-                                 card === 'skull1' ? 9 : card === 'skull2' ? 10 : 8;
-
-            if (effectiveCounts.skull === 0 && totalDiceUsed >= 8 && totalDiceUsed === (totalAllDice - effectiveCounts.skull)) {
+            const physicalSkulls = counts.skull;
+            const physicalScoring = 8 - physicalSkulls;
+            if (physicalSkulls === 0 && getTotalDice() === 8 && !isBattle) {
                 breakdown.push({ label: '📦 תיבה מלאה (כל 8 מנקדות)', value: FULL_CHEST_BONUS });
                 totalScore += FULL_CHEST_BONUS;
             }
@@ -646,6 +658,91 @@
         return false;
     }
 
+    // ── Manual Score Entry ──
+    function openManualScore() {
+        if (gameState.isGameOver) return;
+        const player = gameState.players[gameState.currentPlayerIndex];
+        $('#manual-player-label').textContent = `${player.avatar} ${player.name}`;
+        $('#manual-score-input').value = '';
+        $('#manual-modal').classList.add('active');
+        setTimeout(() => $('#manual-score-input').focus(), 100);
+    }
+
+    function submitManualScore() {
+        const input = $('#manual-score-input');
+        const score = parseInt(input.value);
+        if (isNaN(score)) return;
+
+        const player = gameState.players[gameState.currentPlayerIndex];
+        player.turns.push({
+            round: gameState.round,
+            score: score,
+            card: 'none',
+            bust: score <= 0,
+            manual: true
+        });
+
+        player.score += score;
+        if (player.score < 0) player.score = 0;
+
+        $('#manual-modal').classList.remove('active');
+        showScoreFlash(score);
+
+        if (player.score >= WINNING_SCORE) {
+            gameState.isGameOver = true;
+            renderScoreboard();
+            setTimeout(() => showWinner(player), 800);
+            saveState();
+            return;
+        }
+
+        advanceTurn();
+        renderScoreboard();
+        updateTurnIndicator();
+        saveState();
+    }
+
+    // ── Undo ──
+    function undoLastTurn() {
+        if (gameState.isGameOver) return;
+
+        let prevIndex = gameState.currentPlayerIndex - 1;
+        let prevRound = gameState.round;
+        if (prevIndex < 0) {
+            prevIndex = gameState.players.length - 1;
+            prevRound--;
+        }
+        if (prevRound < 1) return;
+
+        const prevPlayer = gameState.players[prevIndex];
+        if (prevPlayer.turns.length === 0) return;
+
+        if (!confirm(`לבטל את התור האחרון של ${prevPlayer.name}?`)) return;
+
+        const lastTurn = prevPlayer.turns.pop();
+
+        if (lastTurn.islandPenalty) {
+            gameState.players.forEach((p, idx) => {
+                if (idx !== prevIndex) {
+                    const islandTurn = p.turns.findIndex(t => t.round === lastTurn.round && t.island);
+                    if (islandTurn >= 0) {
+                        p.turns.splice(islandTurn, 1);
+                    }
+                }
+            });
+        }
+
+        prevPlayer.score = prevPlayer.turns.reduce((sum, t) => sum + t.score, 0);
+        if (prevPlayer.score < 0) prevPlayer.score = 0;
+
+        gameState.currentPlayerIndex = prevIndex;
+        gameState.round = prevRound;
+
+        renderScoreboard();
+        updateTurnIndicator();
+        saveState();
+    }
+
     function newGame() {
         if (!confirm('להתחיל משחק חדש?')) return;
         localStorage.removeItem('otzarot_game');
@@ -679,6 +776,16 @@
 
         $('#rules-btn').addEventListener('click', () => rulesModal.classList.add('active'));
         $('#close-rules').addEventListener('click', () => rulesModal.classList.remove('active'));
+
+        $('#manual-score-btn').addEventListener('click', openManualScore);
+        $('#submit-manual').addEventListener('click', submitManualScore);
+        $('#cancel-manual').addEventListener('click', () => $('#manual-modal').classList.remove('active'));
+        $('#close-manual').addEventListener('click', () => $('#manual-modal').classList.remove('active'));
+        $('#manual-score-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') submitManualScore();
+        });
+
+        $('#undo-btn').addEventListener('click', undoLastTurn);
 
         $('#new-game-btn').addEventListener('click', newGame);
         $('#new-game-from-winner').addEventListener('click', () => {

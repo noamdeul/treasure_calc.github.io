@@ -72,6 +72,15 @@
         <button id="skip-turn-btn" class="btn btn-secondary skip-btn">
             ⏭️ דלג על תור (0 נקודות)
         </button>
+
+        <div class="bottom-actions">
+            <button id="manual-score-btn" class="btn btn-secondary">
+                ✏️ הזן ניקוד ידני
+            </button>
+            <button id="undo-btn" class="btn btn-secondary">
+                ↩️ בטל תור אחרון
+            </button>
+        </div>
     </div>
 
     <!-- Score Calculator Modal -->
@@ -305,6 +314,27 @@
                     <h3>🏆 סיום המשחק</h3>
                     <p>השחקן הראשון שמגיע ל-8,000 נקודות מנצח!</p>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual Score Modal -->
+    <div id="manual-modal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>✏️ ניקוד ידני</h2>
+                <button class="modal-close" id="close-manual">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="manual-player-label" style="text-align:center; margin-bottom:16px; color:var(--accent); font-weight:700;"></p>
+                <div class="name-input" style="margin-bottom: 0;">
+                    <label>ניקוד:</label>
+                    <input type="number" id="manual-score-input" placeholder="הזן ניקוד (ניתן גם שלילי)" style="direction:ltr; text-align:center;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="submit-manual" class="btn btn-primary">✅ אשר</button>
+                <button id="cancel-manual" class="btn btn-secondary">❌ ביטול</button>
             </div>
         </div>
     </div>
