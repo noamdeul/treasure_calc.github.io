@@ -95,7 +95,7 @@
 
         gameState.players.forEach((player, idx) => {
             const isActive = idx === gameState.currentPlayerIndex && !gameState.isGameOver;
-            const pct = Math.min((player.score / WINNING_SCORE) * 100, 100);
+            const pct = Math.max(0, Math.min((player.score / WINNING_SCORE) * 100, 100));
 
             const card = document.createElement('div');
             card.className = `player-card slide-in ${isActive ? 'active-turn' : ''}`;
@@ -110,7 +110,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="player-score">${player.score.toLocaleString()}</div>
+                <div class="player-score ${player.score < 0 ? 'score-negative' : ''}">${player.score.toLocaleString()}</div>
             `;
             board.appendChild(card);
         });
@@ -239,9 +239,12 @@
         const isBattle = card.startsWith('battle');
         const isCaptain = card === 'captain';
 
+        const isStorm = card === 'storm';
+        const islandThreshold = isStorm ? 3 : 4;
+
         if (totalSkulls >= 3 && !isBattle) {
             isBust = true;
-            if (totalSkulls >= 4) {
+            if (totalSkulls >= islandThreshold) {
                 isIsland = true;
             }
         }
@@ -255,9 +258,9 @@
 
         if (isBust && !isIsland) {
             if (isBattle) {
-                const penalty = BATTLE_REWARDS[card];
-                breakdown.push({ label: '⚔️ כישלון בקרב ימי', value: -penalty });
-                totalScore = -penalty;
+                const penalty = -BATTLE_REWARDS[card];
+                breakdown.push({ label: '⚔️ כישלון בקרב ימי', value: penalty });
+                totalScore = penalty;
             } else if (card === 'treasure_chest') {
                 const chest = getChestCounts();
                 const chestDiamonds = chest['chest-diamond'] || 0;
@@ -324,15 +327,18 @@
                 }
             }
 
-            const diamondBonus = effectiveCounts.diamond * 100;
+            const gemValue = isStorm ? 200 : 100;
+            const diamondBonus = effectiveCounts.diamond * gemValue;
             if (diamondBonus > 0) {
-                breakdown.push({ label: `💎 בונוס יהלומים ×${effectiveCounts.diamond}`, value: diamondBonus });
+                const gemLabel = isStorm ? ` (×${gemValue})` : '';
+                breakdown.push({ label: `💎 בונוס יהלומים ×${effectiveCounts.diamond}${gemLabel}`, value: diamondBonus });
                 totalScore += diamondBonus;
             }
 
-            const goldBonus = effectiveCounts.gold * 100;
+            const goldBonus = effectiveCounts.gold * gemValue;
             if (goldBonus > 0) {
-                breakdown.push({ label: `💰 בונוס זהב ×${effectiveCounts.gold}`, value: goldBonus });
+                const gemLabel = isStorm ? ` (×${gemValue})` : '';
+                breakdown.push({ label: `💰 בונוס זהב ×${effectiveCounts.gold}${gemLabel}`, value: goldBonus });
                 totalScore += goldBonus;
             }
 
@@ -344,14 +350,14 @@
                     breakdown.push({ label: `⚔️ ניצחון קרב ימי (${requiredSwords} חרבות)`, value: battleBonus });
                     totalScore += battleBonus;
                 } else {
-                    const penalty = BATTLE_REWARDS[card];
-                    breakdown.push({ label: '⚔️ כישלון בקרב ימי', value: -penalty });
-                    totalScore = -penalty;
+                    const penalty = -BATTLE_REWARDS[card];
+                    breakdown.push({ label: '⚔️ כישלון בקרב ימי', value: penalty });
+                    totalScore = penalty;
                 }
             }
 
             if (card === 'seven_weapons' && effectiveCounts.sword >= 7) {
-                breakdown.push({ label: '🗡️ שביעיית נשק (7+ חרבות)', value: 500 });
+                breakdown.push({ label: '🗡️ שביתת נשק (7+ חרבות)', value: 500 });
                 totalScore += 500;
             }
 
@@ -363,13 +369,8 @@
         }
 
         if (isCaptain && !isBust && !isIsland && totalScore > 0) {
-            breakdown.push({ label: '🏴‍☠️ כרטיסן - ניקוד כפול! ×2', value: totalScore });
+            breakdown.push({ label: '🏴‍☠️ קברניט - ניקוד כפול! ×2', value: totalScore });
             totalScore *= 2;
-        }
-
-        const currentPlayerScore = gameState.players[gameState.currentPlayerIndex].score;
-        if (totalScore < 0) {
-            totalScore = Math.max(totalScore, -currentPlayerScore) || 0;
         }
 
         renderBreakdown(breakdown, totalScore, isBust, isIsland);
@@ -433,16 +434,14 @@
         const player = gameState.players[gameState.currentPlayerIndex];
         const card = $('#fortune-card').value;
 
-        const effectiveScore = Math.max(score, -player.score);
-
         player.turns.push({
             round: gameState.round,
-            score: effectiveScore,
+            score: score,
             card: card,
             bust: isBust
         });
 
-        player.score += effectiveScore;
+        player.score += score;
 
         calculatorModal.classList.remove('active');
 
@@ -513,11 +512,10 @@
 
         gameState.players.forEach((player, idx) => {
             if (idx !== gameState.currentPlayerIndex) {
-                const actualLoss = Math.min(penalty, player.score);
-                player.score -= actualLoss;
+                player.score -= penalty;
                 player.turns.push({
                     round: gameState.round,
-                    score: -actualLoss,
+                    score: -penalty,
                     card: 'island',
                     bust: false,
                     islandPenalty: true
@@ -553,7 +551,7 @@
 
         const cardInfo = {
             none: '',
-            captain: '🏴‍☠️ כרטיסן! כל הניקוד של התור הזה מוכפל ×2!',
+            captain: '🏴‍☠️ קברניט! כל הניקוד של התור הזה מוכפל ×2!',
             gold: '💰 מתחיל עם מטבע זהב אחד נוסף. נספר אוטומטית בחישוב.',
             diamond: '💎 מתחיל עם יהלום אחד נוסף. נספר אוטומטית בחישוב.',
             skull1: '💀 מתחיל עם גולגולת אחת נוספת. נספרת אוטומטית.',
@@ -561,7 +559,8 @@
             monkey_business: '🐵🦜 קופים ותוכים נספרים כאותו סוג לצורך סדרות!',
             sorceress: '🧙‍♀️ ניתן להחזיר גולגולת אחת. אל תספור אותה בקוביות.',
             treasure_chest: '📦 קוביות שנשמרו בתיבת האוצר מוגנות. סמן למטה אילו קוביות שמרת.',
-            seven_weapons: '🗡️ אם תשיג 7 חרבות או יותר, תקבל בונוס 500 נקודות!',
+            storm: '🌊 סופה! יהלומים וזהב שווים 200 כל אחד. 3 גולגולות = אי הגולגולות!',
+            seven_weapons: '🗡️ שביתת נשק! אם תשיג 7 חרבות או יותר, תקבל בונוס 500 נקודות!',
             battle2: '⚔️ צריך לפחות 2 חרבות. הצלחה = +200, כישלון = -200.',
             battle3: '⚔️ צריך לפחות 3 חרבות. הצלחה = +500, כישלון = -500.',
             battle4: '⚔️ צריך לפחות 4 חרבות. הצלחה = +1,000, כישלון = -1,000.'
@@ -606,6 +605,7 @@
             let turnsHtml = '';
             player.turns.forEach((turn, tIdx) => {
                 const scoreClass = turn.score > 0 ? 'positive' : turn.score < 0 ? 'negative' : 'zero';
+                const scoreDisplay = turn.score >= 0 ? `+${turn.score.toLocaleString()}` : turn.score.toLocaleString();
                 const label = turn.islandPenalty ? `🏝️ עונש אי גולגולות` :
                               turn.island ? `🏝️ אי הגולגולות (${turn.islandSkulls} גולגולות)` :
                               turn.skipped ? '⏭️ דילוג' :
@@ -615,7 +615,7 @@
                 turnsHtml += `
                     <div class="history-turn">
                         <span class="history-turn-num">${label}${cardLabel ? ` (${cardLabel})` : ''}</span>
-                        <span class="history-turn-score ${scoreClass}">${turn.score >= 0 ? '+' : ''}${turn.score.toLocaleString()}</span>
+                        <span class="history-turn-score ${scoreClass}">${scoreDisplay}</span>
                     </div>
                 `;
             });
@@ -645,6 +645,7 @@
             monkey_business: '🐵',
             sorceress: '🧙‍♀️',
             treasure_chest: '📦',
+            storm: '🌊',
             seven_weapons: '🗡️',
             battle2: '⚔️×2',
             battle3: '⚔️×3',
@@ -697,7 +698,7 @@
     function submitManualScore() {
         const input = $('#manual-score-input');
         const score = parseInt(input.value);
-        if (isNaN(score) || score < 0) return;
+        if (isNaN(score)) return;
 
         const player = gameState.players[gameState.currentPlayerIndex];
         player.turns.push({
@@ -757,7 +758,7 @@
             });
         }
 
-        prevPlayer.score = Math.max(0, prevPlayer.turns.reduce((sum, t) => sum + t.score, 0));
+        prevPlayer.score = prevPlayer.turns.reduce((sum, t) => sum + t.score, 0);
 
         gameState.currentPlayerIndex = prevIndex;
         gameState.round = prevRound;
