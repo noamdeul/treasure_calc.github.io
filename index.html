@@ -307,11 +307,11 @@
                 <div class="rule-section">
                     <h3>⚔️ קרב ימי</h3>
                     <table class="rules-table">
-                        <tr><td>2 חרבות</td><td>+200 (הצלחה) / 0 (כישלון)</td></tr>
-                        <tr><td>3 חרבות</td><td>+500 (הצלחה) / 0 (כישלון)</td></tr>
-                        <tr><td>4 חרבות</td><td>+1,000 (הצלחה) / 0 (כישלון)</td></tr>
+                        <tr><td>2 חרבות</td><td>+200 (הצלחה) / -200 (כישלון)</td></tr>
+                        <tr><td>3 חרבות</td><td>+500 (הצלחה) / -500 (כישלון)</td></tr>
+                        <tr><td>4 חרבות</td><td>+1,000 (הצלחה) / -1,000 (כישלון)</td></tr>
                     </table>
-                    <p>(כישלון = 0 נקודות לתור. הניקוד לא יורד מתחת ל-0)</p>
+                    <p>(כישלון = הפחתה מהניקוד הכולל)</p>
                 </div>
                 <div class="rule-section">
                     <h3>🏴‍☠️ קברניט (פיראט)</h3>
@@ -324,7 +324,7 @@
                 <div class="rule-section">
                     <h3>🏆 סיום המשחק</h3>
                     <p>השחקן הראשון שמגיע ל-8,000 נקודות מנצח!</p>
-                    <p>ניקוד שחקן לעולם לא יורד מתחת ל-0.</p>
+                    <p>ניקוד שחקן יכול להיות שלילי.</p>
                 </div>
             </div>
         </div>
@@ -341,7 +341,7 @@
                 <p id="manual-player-label" style="text-align:center; margin-bottom:16px; color:var(--accent); font-weight:700;"></p>
                 <div class="name-input" style="margin-bottom: 0;">
                     <label>ניקוד:</label>
-                    <input type="number" id="manual-score-input" placeholder="הזן ניקוד" min="0" style="direction:ltr; text-align:center;">
+                    <input type="number" id="manual-score-input" placeholder="הזן ניקוד (ניתן גם שלילי)" style="direction:ltr; text-align:center;">
                 </div>
             </div>
             <div class="modal-footer">

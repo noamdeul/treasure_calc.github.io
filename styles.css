@@ -311,6 +311,10 @@ body {
     color: var(--accent-light);
 }
 
+.player-score.score-negative {
+    color: var(--danger);
+}
+
 .score-bar-container {
     width: 100%;
     height: 4px;
