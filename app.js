@@ -1342,5 +1342,7 @@
         }
     }
 
+    window._playTurn = openPlayMode;
+
     document.addEventListener('DOMContentLoaded', init);
 })();
