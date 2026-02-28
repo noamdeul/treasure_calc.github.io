@@ -65,8 +65,12 @@
             <span id="round-number">סיבוב: 1</span>
         </div>
 
-        <button id="calc-score-btn" class="btn btn-primary btn-large calc-btn">
-            🎲 חשב ניקוד לתור
+        <button id="play-turn-btn" class="btn btn-primary btn-large play-btn">
+            🎲 שחק תור
+        </button>
+
+        <button id="calc-score-btn" class="btn btn-secondary btn-large calc-btn">
+            🧮 חשב ניקוד ידני
         </button>
         
         <button id="skip-turn-btn" class="btn btn-secondary skip-btn">
@@ -80,6 +84,68 @@
             <button id="undo-btn" class="btn btn-secondary">
                 ↩️ בטל תור אחרון
             </button>
+        </div>
+    </div>
+
+    <!-- Play Turn Modal -->
+    <div id="play-modal" class="modal">
+        <div class="modal-content play-content">
+            <div class="modal-header">
+                <h2>🎲 <span id="play-player-name"></span></h2>
+                <button class="modal-close" id="close-play">&times;</button>
+            </div>
+            <div class="modal-body play-body">
+                <!-- Fortune Card -->
+                <div class="play-card-area" id="play-card-area">
+                    <div class="play-card" id="play-card">
+                        <div class="play-card-back" id="play-card-back">🃏<br>לחץ לשלוף קלף</div>
+                        <div class="play-card-front hidden" id="play-card-front">
+                            <div class="play-card-icon" id="play-card-icon"></div>
+                            <div class="play-card-name" id="play-card-name"></div>
+                            <div class="play-card-desc" id="play-card-desc"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dice Area -->
+                <div id="play-dice-area" class="play-dice-area hidden">
+                    <div class="play-roll-info">
+                        <span id="play-roll-num">הטלה: 1</span>
+                        <span id="play-skulls-count">💀 0</span>
+                    </div>
+                    <div class="play-dice-grid" id="play-dice-grid"></div>
+                    <p class="play-hint" id="play-hint">לחץ על קוביה כדי לשמור/לשחרר אותה</p>
+
+                    <!-- Treasure Chest area -->
+                    <div id="play-chest-area" class="play-chest-area hidden">
+                        <h4>📦 תיבת אוצר</h4>
+                        <p class="play-hint">לחץ על קוביה שמורה כדי להכניס/להוציא מהתיבה</p>
+                        <div class="play-chest-grid" id="play-chest-grid"></div>
+                    </div>
+
+                    <!-- Live Score -->
+                    <div class="play-live-score">
+                        <span>ניקוד נוכחי:</span>
+                        <span id="play-live-total" class="play-total">0</span>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="play-actions" id="play-actions">
+                        <button id="play-roll-btn" class="btn btn-primary btn-large">🎲 הטל קוביות</button>
+                        <button id="play-stop-btn" class="btn btn-success btn-large hidden">✅ עצור ושמור ניקוד</button>
+                    </div>
+
+                    <!-- Bust / Island overlay -->
+                    <div id="play-bust-overlay" class="play-bust-overlay hidden">
+                        <div class="play-bust-content">
+                            <div class="play-bust-icon" id="play-bust-icon">💀</div>
+                            <div class="play-bust-text" id="play-bust-text"></div>
+                            <div class="play-bust-score" id="play-bust-score"></div>
+                            <button id="play-bust-ok" class="btn btn-primary btn-large">אישור</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
