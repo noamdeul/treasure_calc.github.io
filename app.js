@@ -894,19 +894,17 @@
     function rollDice() {
         if (playState.phase !== 'roll') return;
 
-        const freeCount = playState.dice.filter((d, i) => !playState.kept[i] && d !== 'skull').length
-            + playState.dice.filter(d => d === null).length;
+        const freeCount = playState.dice.filter((d, i) =>
+            !playState.kept[i] && d !== 'skull'
+        ).length;
         if (freeCount < 2 && playState.rollCount > 0) return;
 
         playState.rollCount++;
 
         for (let i = 0; i < 8; i++) {
-            if (!playState.kept[i] && playState.dice[i] !== 'skull') {
-                playState.dice[i] = DICE_FACES[Math.floor(Math.random() * 6)];
-            }
-            if (playState.dice[i] === null) {
-                playState.dice[i] = DICE_FACES[Math.floor(Math.random() * 6)];
-            }
+            if (playState.kept[i]) continue;
+            if (playState.dice[i] === 'skull') continue;
+            playState.dice[i] = DICE_FACES[Math.floor(Math.random() * 6)];
         }
 
         for (let i = 0; i < 8; i++) {
@@ -936,7 +934,21 @@
 
         $('#play-roll-btn').textContent = '🎲 הטל שוב';
         $('#play-stop-btn').classList.remove('hidden');
-        $('#play-hint').textContent = 'לחץ על קוביה כדי לשמור/לשחרר אותה';
+
+        const isBattleCard = playState.card.id.startsWith('battle');
+        if (isBattleCard) {
+            const req = parseInt(playState.card.id.replace('battle', ''));
+            const swordCount = playState.dice.filter(d => d === 'sword').length;
+            if (swordCount < req) {
+                $('#play-stop-btn').classList.add('hidden');
+                $('#play-hint').textContent = `⚔️ צריך ${req} חרבות! (יש ${swordCount}) - חייב להמשיך להטיל`;
+            } else {
+                $('#play-hint').textContent = 'לחץ על קוביה כדי לשמור/לשחרר אותה';
+            }
+        } else {
+            $('#play-hint').textContent = 'לחץ על קוביה כדי לשמור/לשחרר אותה';
+        }
+
         playState.phase = 'pick';
     }
 
@@ -1110,13 +1122,9 @@
 
         if (card.id === 'seven_weapons' && counts.sword >= 7) total += 500;
 
-        if (counts.skull === 0 && !isBattle) {
-            const used = Object.values(counts).reduce((a, b) => a + b, 0)
-                - counts.skull
-                + (card.id === 'gold' || card.id === 'diamond' ? 1 : 0);
-            if (playState.dice.filter(d => d !== null).length === 8) {
-                total += FULL_CHEST_BONUS;
-            }
+        const allDiceUsed = playState.dice.filter(d => d !== null).length === 8;
+        if (counts.skull === 0 && allDiceUsed && !isBattle) {
+            total += FULL_CHEST_BONUS;
         }
 
         if (isCaptain && total > 0) total *= 2;
