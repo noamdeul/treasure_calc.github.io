@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>אוצרות אוצרות - מחשבון ניקוד</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Setup Screen -->
+    <div id="setup-screen" class="screen active">
+        <div class="logo-container">
+            <h1 class="game-title">⚓ אוצרות אוצרות ⚓</h1>
+            <p class="subtitle">מחשבון ניקוד למשחק</p>
+        </div>
+        <div class="setup-card">
+            <h2>הגדרת שחקנים</h2>
+            <div class="player-count">
+                <label>מספר שחקנים:</label>
+                <div class="count-selector">
+                    <button class="count-btn" data-count="2">2</button>
+                    <button class="count-btn active" data-count="3">3</button>
+                    <button class="count-btn" data-count="4">4</button>
+                </div>
+            </div>
+            <div id="player-names" class="player-names">
+                <div class="name-input">
+                    <label>שחקן 1:</label>
+                    <input type="text" id="player-1-name" placeholder="שם שחקן 1" maxlength="15">
+                </div>
+                <div class="name-input">
+                    <label>שחקן 2:</label>
+                    <input type="text" id="player-2-name" placeholder="שם שחקן 2" maxlength="15">
+                </div>
+                <div class="name-input">
+                    <label>שחקן 3:</label>
+                    <input type="text" id="player-3-name" placeholder="שם שחקן 3" maxlength="15">
+                </div>
+            </div>
+            <button id="start-game-btn" class="btn btn-primary btn-large">התחל משחק 🏴‍☠️</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen">
+        <header class="game-header">
+            <h1 class="header-title">⚓ אוצרות</h1>
+            <div class="header-actions">
+                <button id="history-btn" class="icon-btn" title="היסטוריה">📜</button>
+                <button id="rules-btn" class="icon-btn" title="חוקים">📖</button>
+                <button id="new-game-btn" class="icon-btn" title="משחק חדש">🔄</button>
+            </div>
+        </header>
+
+        <div class="target-score-bar">
+            <span>🎯 יעד: 8,000 נקודות</span>
+        </div>
+
+        <div id="scoreboard" class="scoreboard"></div>
+
+        <div class="current-turn-indicator">
+            <span id="current-player-name">תור של: ---</span>
+            <span id="round-number">סיבוב: 1</span>
+        </div>
+
+        <button id="calc-score-btn" class="btn btn-primary btn-large calc-btn">
+            🎲 חשב ניקוד לתור
+        </button>
+        
+        <button id="skip-turn-btn" class="btn btn-secondary skip-btn">
+            ⏭️ דלג על תור (0 נקודות)
+        </button>
+
+        <div class="bottom-actions">
+            <button id="manual-score-btn" class="btn btn-secondary">
+                ✏️ הזן ניקוד ידני
+            </button>
+            <button id="undo-btn" class="btn btn-secondary">
+                ↩️ בטל תור אחרון
+            </button>
+        </div>
+    </div>
+
+    <!-- Score Calculator Modal -->
+    <div id="calculator-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🎲 מחשבון ניקוד</h2>
+                <button class="modal-close" id="close-calc">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="calc-player-name" id="calc-player-name"></div>
+
+                <!-- Fortune Card Selection -->
+                <div class="section">
+                    <h3>🃏 קלף גורל</h3>
+                    <select id="fortune-card" class="fortune-select">
+                        <option value="none">ללא קלף מיוחד</option>
+                        <option value="gold">💰 מטבע זהב (מתחיל עם מטבע זהב)</option>
+                        <option value="diamond">💎 יהלום (מתחיל עם יהלום)</option>
+                        <option value="skull1">💀 גולגולת ×1 (מתחיל עם גולגולת)</option>
+                        <option value="skull2">💀💀 גולגולת ×2 (מתחיל עם 2 גולגולות)</option>
+                        <option value="monkey_business">🐵 מאנקי (קופים ותוכים נספרים ביחד)</option>
+                        <option value="sorceress">🧙‍♀️ קוסמת (אפשר להחזיר גולגולת אחת)</option>
+                        <option value="treasure_chest">📦 תיבת אוצר (קוביות שמורות)</option>
+                        <option value="battle2">⚔️ קרב ימי ×2 (צריך 2 חרבות = 200 נק')</option>
+                        <option value="battle3">⚔️ קרב ימי ×3 (צריך 3 חרבות = 500 נק')</option>
+                        <option value="battle4">⚔️ קרב ימי ×4 (צריך 4 חרבות = 1,000 נק')</option>
+                    </select>
+                </div>
+
+                <div id="fortune-card-info" class="fortune-info hidden"></div>
+
+                <!-- Dice Input -->
+                <div class="section">
+                    <h3>🎲 תוצאות קוביות</h3>
+                    <p class="dice-instruction">בחר כמה קוביות מכל סוג (סה"כ עד 8)</p>
+                    <div id="dice-remaining" class="dice-remaining">נותרו: <span>8</span> קוביות</div>
+                    
+                    <div class="dice-grid">
+                        <div class="dice-item" data-type="diamond">
+                            <div class="dice-icon">💎</div>
+                            <div class="dice-label">יהלום</div>
+                            <div class="dice-counter">
+                                <button class="counter-btn minus" data-type="diamond">−</button>
+                                <span class="counter-value" id="count-diamond">0</span>
+                                <button class="counter-btn plus" data-type="diamond">+</button>
+                            </div>
+                        </div>
+                        <div class="dice-item" data-type="gold">
+                            <div class="dice-icon">💰</div>
+                            <div class="dice-label">מטבע זהב</div>
+                            <div class="dice-counter">
+                                <button class="counter-btn minus" data-type="gold">−</button>
+                                <span class="counter-value" id="count-gold">0</span>
+                                <button class="counter-btn plus" data-type="gold">+</button>
+                            </div>
+                        </div>
+                        <div class="dice-item" data-type="monkey">
+                            <div class="dice-icon">🐵</div>
+                            <div class="dice-label">קוף</div>
+                            <div class="dice-counter">
+                                <button class="counter-btn minus" data-type="monkey">−</button>
+                                <span class="counter-value" id="count-monkey">0</span>
+                                <button class="counter-btn plus" data-type="monkey">+</button>
+                            </div>
+                        </div>
+                        <div class="dice-item" data-type="parrot">
+                            <div class="dice-icon">🦜</div>
+                            <div class="dice-label">תוכי</div>
+                            <div class="dice-counter">
+                                <button class="counter-btn minus" data-type="parrot">−</button>
+                                <span class="counter-value" id="count-parrot">0</span>
+                                <button class="counter-btn plus" data-type="parrot">+</button>
+                            </div>
+                        </div>
+                        <div class="dice-item" data-type="sword">
+                            <div class="dice-icon">⚔️</div>
+                            <div class="dice-label">חרב</div>
+                            <div class="dice-counter">
+                                <button class="counter-btn minus" data-type="sword">−</button>
+                                <span class="counter-value" id="count-sword">0</span>
+                                <button class="counter-btn plus" data-type="sword">+</button>
+                            </div>
+                        </div>
+                        <div class="dice-item skull" data-type="skull">
+                            <div class="dice-icon">💀</div>
+                            <div class="dice-label">גולגולת</div>
+                            <div class="dice-counter">
+                                <button class="counter-btn minus" data-type="skull">−</button>
+                                <span class="counter-value" id="count-skull">0</span>
+                                <button class="counter-btn plus" data-type="skull">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Treasure Chest Section (shown when treasure chest card is active) -->
+                <div id="chest-section" class="section hidden">
+                    <h3>📦 קוביות בתיבת האוצר</h3>
+                    <p class="dice-instruction">כמה קוביות שמרת בתיבה? (אלו נשמרות גם אם הפסדת)</p>
+                    <div class="dice-grid compact">
+                        <div class="dice-item" data-type="chest-diamond">
+                            <div class="dice-icon">💎</div>
+                            <div class="dice-counter">
+                                <button class="counter-btn minus" data-type="chest-diamond">−</button>
+                                <span class="counter-value" id="count-chest-diamond">0</span>
+                                <button class="counter-btn plus" data-type="chest-diamond">+</button>
+                            </div>
+                        </div>
+                        <div class="dice-item" data-type="chest-gold">
+                            <div class="dice-icon">💰</div>
+                            <div class="dice-counter">
+                                <button class="counter-btn minus" data-type="chest-gold">−</button>
+                                <span class="counter-value" id="count-chest-gold">0</span>
+                                <button class="counter-btn plus" data-type="chest-gold">+</button>
+                            </div>
+                        </div>
+                        <div class="dice-item" data-type="chest-sword">
+                            <div class="dice-icon">⚔️</div>
+                            <div class="dice-counter">
+                                <button class="counter-btn minus" data-type="chest-sword">−</button>
+                                <span class="counter-value" id="count-chest-sword">0</span>
+                                <button class="counter-btn plus" data-type="chest-sword">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Score Breakdown -->
+                <div class="section score-breakdown" id="score-breakdown">
+                    <h3>📊 פירוט ניקוד</h3>
+                    <div id="breakdown-details"></div>
+                    <div class="score-total">
+                        <span>סה"כ:</span>
+                        <span id="total-score" class="total-value">0</span>
+                    </div>
+                </div>
+
+                <div id="bust-warning" class="bust-warning hidden">
+                    💀💀💀 הפסד! 3 גולגולות או יותר - 0 נקודות!
+                </div>
+
+                <div id="island-warning" class="island-warning hidden">
+                    🏝️ אי הגולגולות! 4+ גולגולות - כל השחקנים האחרים מפסידים נקודות!
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button id="submit-score" class="btn btn-primary btn-large">✅ אשר ניקוד</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Island of Skulls Modal -->
+    <div id="island-modal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>🏝️ אי הגולגולות</h2>
+            </div>
+            <div class="modal-body">
+                <p>השחקן הגיע לאי הגולגולות!</p>
+                <p>כמה גולגולות בסה"כ (כולל מהקלף)?</p>
+                <div class="island-counter">
+                    <button class="counter-btn minus" id="island-minus">−</button>
+                    <span class="counter-value island-value" id="island-skulls">4</span>
+                    <button class="counter-btn plus" id="island-plus">+</button>
+                </div>
+                <p class="island-penalty" id="island-penalty-text">כל שחקן אחר מפסיד: <strong>400</strong> נקודות</p>
+            </div>
+            <div class="modal-footer">
+                <button id="submit-island" class="btn btn-primary">✅ אשר</button>
+                <button id="cancel-island" class="btn btn-secondary">❌ ביטול</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="history-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📜 היסטוריית ניקוד</h2>
+                <button class="modal-close" id="close-history">&times;</button>
+            </div>
+            <div class="modal-body" id="history-body"></div>
+        </div>
+    </div>
+
+    <!-- Rules Modal -->
+    <div id="rules-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📖 חוקי ניקוד</h2>
+                <button class="modal-close" id="close-rules">&times;</button>
+            </div>
+            <div class="modal-body rules-body">
+                <div class="rule-section">
+                    <h3>🎲 סדרות (קוביות זהות)</h3>
+                    <table class="rules-table">
+                        <tr><td>3 זהות</td><td>100 נקודות</td></tr>
+                        <tr><td>4 זהות</td><td>200 נקודות</td></tr>
+                        <tr><td>5 זהות</td><td>500 נקודות</td></tr>
+                        <tr><td>6 זהות</td><td>1,000 נקודות</td></tr>
+                        <tr><td>7 זהות</td><td>2,000 נקודות</td></tr>
+                        <tr><td>8 זהות</td><td>4,000 נקודות</td></tr>
+                    </table>
+                </div>
+                <div class="rule-section">
+                    <h3>💎💰 בונוס יהלומים וזהב</h3>
+                    <p>כל יהלום = 100 נקודות בונוס</p>
+                    <p>כל מטבע זהב = 100 נקודות בונוס</p>
+                    <p>(בנוסף לניקוד הסדרה)</p>
+                </div>
+                <div class="rule-section">
+                    <h3>📦 תיבה מלאה</h3>
+                    <p>אם כל 8 הקוביות מנוקדות (ללא גולגולות) = 500 נקודות בונוס</p>
+                </div>
+                <div class="rule-section">
+                    <h3>💀 גולגולות</h3>
+                    <p>3 גולגולות או יותר = 0 נקודות לתור</p>
+                    <p>4+ גולגולות בהטלה ראשונה = אי הגולגולות (שאר השחקנים מפסידים 100 לכל גולגולת)</p>
+                </div>
+                <div class="rule-section">
+                    <h3>⚔️ קרב ימי</h3>
+                    <table class="rules-table">
+                        <tr><td>2 חרבות</td><td>+200 (הצלחה) / -200 (כישלון)</td></tr>
+                        <tr><td>3 חרבות</td><td>+500 (הצלחה) / -500 (כישלון)</td></tr>
+                        <tr><td>4 חרבות</td><td>+1,000 (הצלחה) / -1,000 (כישלון)</td></tr>
+                    </table>
+                </div>
+                <div class="rule-section">
+                    <h3>🏆 סיום המשחק</h3>
+                    <p>השחקן הראשון שמגיע ל-8,000 נקודות מנצח!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual Score Modal -->
+    <div id="manual-modal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>✏️ ניקוד ידני</h2>
+                <button class="modal-close" id="close-manual">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="manual-player-label" style="text-align:center; margin-bottom:16px; color:var(--accent); font-weight:700;"></p>
+                <div class="name-input" style="margin-bottom: 0;">
+                    <label>ניקוד:</label>
+                    <input type="number" id="manual-score-input" placeholder="הזן ניקוד (ניתן גם שלילי)" style="direction:ltr; text-align:center;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="submit-manual" class="btn btn-primary">✅ אשר</button>
+                <button id="cancel-manual" class="btn btn-secondary">❌ ביטול</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Winner Modal -->
+    <div id="winner-modal" class="modal">
+        <div class="modal-content modal-small winner-content">
+            <div class="winner-animation">🏆</div>
+            <h2 id="winner-name" class="winner-title"></h2>
+            <p class="winner-score" id="winner-score"></p>
+            <button id="new-game-from-winner" class="btn btn-primary btn-large">🔄 משחק חדש</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
