@@ -18,13 +18,17 @@
     const $ = (sel) => document.querySelector(sel);
     const $$ = (sel) => document.querySelectorAll(sel);
 
-    const setupScreen = $('#setup-screen');
-    const gameScreen = $('#game-screen');
-    const calculatorModal = $('#calculator-modal');
-    const historyModal = $('#history-modal');
-    const rulesModal = $('#rules-modal');
-    const winnerModal = $('#winner-modal');
-    const islandModal = $('#island-modal');
+    let setupScreen, gameScreen, calculatorModal, historyModal, rulesModal, winnerModal, islandModal;
+
+    function cacheDOM() {
+        setupScreen = $('#setup-screen');
+        gameScreen = $('#game-screen');
+        calculatorModal = $('#calculator-modal');
+        historyModal = $('#history-modal');
+        rulesModal = $('#rules-modal');
+        winnerModal = $('#winner-modal');
+        islandModal = $('#island-modal');
+    }
 
     // ── Setup Screen ──
     function initSetup() {
@@ -363,7 +367,10 @@
         const container = $('#breakdown-details');
         container.innerHTML = '';
 
-        if (isBust && !isIsland && !$('#fortune-card').value.startsWith('battle')) {
+        const card = $('#fortune-card').value;
+        const isTreasureChestBust = isBust && !isIsland && card === 'treasure_chest' && breakdown.length > 0;
+
+        if (isBust && !isIsland && !card.startsWith('battle') && !isTreasureChestBust) {
             const row = document.createElement('div');
             row.className = 'breakdown-row';
             row.innerHTML = `<span class="breakdown-label">💀 הפסד - 3+ גולגולות</span><span class="breakdown-value">0</span>`;
@@ -827,6 +834,7 @@
 
     // ── Init ──
     function init() {
+        cacheDOM();
         initSetup();
         bindEvents();
         if (!loadState()) {
