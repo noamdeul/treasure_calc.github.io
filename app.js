@@ -255,9 +255,8 @@
 
         if (isBust && !isIsland) {
             if (isBattle) {
-                const penalty = BATTLE_REWARDS[card];
-                breakdown.push({ label: '⚔️ כישלון בקרב ימי', value: -penalty });
-                totalScore = -penalty;
+                breakdown.push({ label: '⚔️ כישלון בקרב ימי', value: 0 });
+                totalScore = 0;
             } else if (card === 'treasure_chest') {
                 const chest = getChestCounts();
                 const chestDiamonds = chest['chest-diamond'] || 0;
@@ -344,14 +343,13 @@
                     breakdown.push({ label: `⚔️ ניצחון קרב ימי (${requiredSwords} חרבות)`, value: battleBonus });
                     totalScore += battleBonus;
                 } else {
-                    const penalty = BATTLE_REWARDS[card];
-                    breakdown.push({ label: '⚔️ כישלון בקרב ימי', value: -penalty });
-                    totalScore = -penalty;
+                    breakdown.push({ label: '⚔️ כישלון בקרב ימי - 0 נקודות', value: 0 });
+                    totalScore = 0;
                 }
             }
 
             if (card === 'seven_weapons' && effectiveCounts.sword >= 7) {
-                breakdown.push({ label: '🗡️ שביעיית נשק (7+ חרבות)', value: 500 });
+                breakdown.push({ label: '🗡️ שביתת נשק (7+ חרבות)', value: 500 });
                 totalScore += 500;
             }
 
@@ -363,14 +361,11 @@
         }
 
         if (isCaptain && !isBust && !isIsland && totalScore > 0) {
-            breakdown.push({ label: '🏴‍☠️ כרטיסן - ניקוד כפול! ×2', value: totalScore });
+            breakdown.push({ label: '🏴‍☠️ קברניט - ניקוד כפול! ×2', value: totalScore });
             totalScore *= 2;
         }
 
-        const currentPlayerScore = gameState.players[gameState.currentPlayerIndex].score;
-        if (totalScore < 0) {
-            totalScore = Math.max(totalScore, -currentPlayerScore) || 0;
-        }
+        totalScore = Math.max(0, totalScore);
 
         renderBreakdown(breakdown, totalScore, isBust, isIsland);
         return { totalScore, isBust, isIsland };
@@ -414,8 +409,8 @@
         }
 
         const totalEl = $('#total-score');
-        totalEl.textContent = isIsland ? '—' : totalScore.toLocaleString();
-        totalEl.className = `total-value ${totalScore < 0 ? 'negative' : ''}`;
+        totalEl.textContent = isIsland ? '—' : Math.max(0, totalScore).toLocaleString();
+        totalEl.className = 'total-value';
     }
 
     function submitScore() {
@@ -433,20 +428,20 @@
         const player = gameState.players[gameState.currentPlayerIndex];
         const card = $('#fortune-card').value;
 
-        const effectiveScore = Math.max(score, -player.score);
+        const safeScore = Math.max(0, score);
 
         player.turns.push({
             round: gameState.round,
-            score: effectiveScore,
+            score: safeScore,
             card: card,
             bust: isBust
         });
 
-        player.score += effectiveScore;
+        player.score += safeScore;
 
         calculatorModal.classList.remove('active');
 
-        showScoreFlash(score);
+        showScoreFlash(safeScore);
 
         if (player.score >= WINNING_SCORE) {
             gameState.isGameOver = true;
@@ -553,7 +548,7 @@
 
         const cardInfo = {
             none: '',
-            captain: '🏴‍☠️ כרטיסן! כל הניקוד של התור הזה מוכפל ×2!',
+            captain: '🏴‍☠️ קברניט! כל הניקוד של התור הזה מוכפל ×2!',
             gold: '💰 מתחיל עם מטבע זהב אחד נוסף. נספר אוטומטית בחישוב.',
             diamond: '💎 מתחיל עם יהלום אחד נוסף. נספר אוטומטית בחישוב.',
             skull1: '💀 מתחיל עם גולגולת אחת נוספת. נספרת אוטומטית.',
@@ -561,10 +556,10 @@
             monkey_business: '🐵🦜 קופים ותוכים נספרים כאותו סוג לצורך סדרות!',
             sorceress: '🧙‍♀️ ניתן להחזיר גולגולת אחת. אל תספור אותה בקוביות.',
             treasure_chest: '📦 קוביות שנשמרו בתיבת האוצר מוגנות. סמן למטה אילו קוביות שמרת.',
-            seven_weapons: '🗡️ אם תשיג 7 חרבות או יותר, תקבל בונוס 500 נקודות!',
-            battle2: '⚔️ צריך לפחות 2 חרבות. הצלחה = +200, כישלון = -200.',
-            battle3: '⚔️ צריך לפחות 3 חרבות. הצלחה = +500, כישלון = -500.',
-            battle4: '⚔️ צריך לפחות 4 חרבות. הצלחה = +1,000, כישלון = -1,000.'
+            seven_weapons: '🗡️ שביתת נשק! אם תשיג 7 חרבות או יותר, תקבל בונוס 500 נקודות!',
+            battle2: '⚔️ צריך לפחות 2 חרבות. הצלחה = +200, כישלון = 0 נקודות.',
+            battle3: '⚔️ צריך לפחות 3 חרבות. הצלחה = +500, כישלון = 0 נקודות.',
+            battle4: '⚔️ צריך לפחות 4 חרבות. הצלחה = +1,000, כישלון = 0 נקודות.'
         };
 
         if (cardInfo[card]) {
@@ -582,8 +577,8 @@
     // ── UI Feedback ──
     function showScoreFlash(score) {
         const flash = document.createElement('div');
-        flash.className = `score-flash ${score < 0 ? 'negative' : ''}`;
-        flash.textContent = score === 0 ? '💀 0' : (score > 0 ? `+${score.toLocaleString()}` : score.toLocaleString());
+        flash.className = 'score-flash';
+        flash.textContent = score === 0 ? '💀 0' : `+${score.toLocaleString()}`;
         document.body.appendChild(flash);
         setTimeout(() => flash.remove(), 1300);
     }
@@ -605,7 +600,17 @@
 
             let turnsHtml = '';
             player.turns.forEach((turn, tIdx) => {
-                const scoreClass = turn.score > 0 ? 'positive' : turn.score < 0 ? 'negative' : 'zero';
+                let scoreClass, scoreDisplay;
+                if (turn.islandPenalty && turn.score < 0) {
+                    scoreClass = 'negative';
+                    scoreDisplay = `הפסד ${Math.abs(turn.score).toLocaleString()}`;
+                } else if (turn.score > 0) {
+                    scoreClass = 'positive';
+                    scoreDisplay = `+${turn.score.toLocaleString()}`;
+                } else {
+                    scoreClass = 'zero';
+                    scoreDisplay = '0';
+                }
                 const label = turn.islandPenalty ? `🏝️ עונש אי גולגולות` :
                               turn.island ? `🏝️ אי הגולגולות (${turn.islandSkulls} גולגולות)` :
                               turn.skipped ? '⏭️ דילוג' :
@@ -615,7 +620,7 @@
                 turnsHtml += `
                     <div class="history-turn">
                         <span class="history-turn-num">${label}${cardLabel ? ` (${cardLabel})` : ''}</span>
-                        <span class="history-turn-score ${scoreClass}">${turn.score >= 0 ? '+' : ''}${turn.score.toLocaleString()}</span>
+                        <span class="history-turn-score ${scoreClass}">${scoreDisplay}</span>
                     </div>
                 `;
             });
