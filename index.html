@@ -41,6 +41,7 @@
                     <input type="text" id="player-3-name" placeholder="שם שחקן 3" maxlength="15">
                 </div>
             </div>
+            <button type="button" id="random-names-btn" class="btn btn-secondary btn-random-names">🎲 שמות אקראיים</button>
             <button id="start-game-btn" class="btn btn-primary btn-large">התחל משחק 🏴‍☠️</button>
         </div>
     </div>
@@ -111,30 +112,32 @@
 
                 <!-- Dice Area -->
                 <div id="play-dice-area" class="play-dice-area hidden">
-                    <div class="play-roll-info">
-                        <span id="play-roll-num">הטלה: 1</span>
-                        <span id="play-skulls-count">💀 0</span>
-                    </div>
-                    <div class="play-dice-grid" id="play-dice-grid"></div>
-                    <p class="play-hint" id="play-hint">לחץ על קוביה כדי לשמור/לשחרר אותה</p>
+                    <div class="play-scrollable">
+                        <div class="play-roll-info">
+                            <span id="play-roll-num">הטלה: 1</span>
+                            <span id="play-skulls-count">💀 0</span>
+                        </div>
+                        <div class="play-dice-grid" id="play-dice-grid"></div>
+                        <p class="play-hint" id="play-hint">לחץ על קוביה כדי לשמור/לשחרר אותה</p>
 
-                    <!-- Treasure Chest area -->
-                    <div id="play-chest-area" class="play-chest-area hidden">
-                        <h4>📦 תיבת אוצר</h4>
-                        <p class="play-hint">לחץ על קוביה שמורה כדי להכניס/להוציא מהתיבה</p>
-                        <div class="play-chest-grid" id="play-chest-grid"></div>
-                    </div>
-
-                    <!-- Live Score -->
-                    <div class="play-live-score">
-                        <span>ניקוד נוכחי:</span>
-                        <span id="play-live-total" class="play-total">0</span>
+                        <!-- Treasure Chest area -->
+                        <div id="play-chest-area" class="play-chest-area hidden">
+                            <h4>📦 תיבת אוצר</h4>
+                            <p class="play-hint">לחץ על קוביה שמורה כדי להכניס/להוציא מהתיבה</p>
+                            <div class="play-chest-grid" id="play-chest-grid"></div>
+                        </div>
                     </div>
 
-                    <!-- Action Buttons -->
-                    <div class="play-actions" id="play-actions">
-                        <button id="play-roll-btn" class="btn btn-primary btn-large">🎲 הטל קוביות</button>
-                        <button id="play-stop-btn" class="btn btn-success btn-large hidden">✅ עצור ושמור ניקוד</button>
+                    <!-- Always-visible footer: score + buttons -->
+                    <div class="play-footer">
+                        <div class="play-live-score">
+                            <span>ניקוד נוכחי:</span>
+                            <span id="play-live-total" class="play-total">0</span>
+                        </div>
+                        <div class="play-actions" id="play-actions">
+                            <button id="play-roll-btn" class="btn btn-primary btn-large">🎲 הטל קוביות</button>
+                            <button id="play-stop-btn" class="btn btn-success btn-large hidden">✅ עצור ושמור ניקוד</button>
+                        </div>
                     </div>
 
                     <!-- Bust / Island overlay -->
@@ -435,6 +438,6 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>
