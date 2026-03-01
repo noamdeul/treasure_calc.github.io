@@ -894,12 +894,20 @@
     }
 
     function rollDice() {
-        if (playState.phase !== 'roll') return;
+        const isIslandPhase = playState.phase === 'island';
+        if (playState.phase !== 'roll' && !isIslandPhase) return;
 
         const freeCount = playState.dice.filter((d, i) =>
             !playState.kept[i] && d !== 'skull'
         ).length;
-        if (freeCount < 2 && playState.rollCount > 0) return;
+        if (freeCount < 2 && playState.rollCount > 0 && !isIslandPhase) return;
+
+        const skullsBeforeRoll = getPlaySkullCount();
+        if (isIslandPhase && freeCount < 2) {
+            playState.phase = 'bust';
+            setTimeout(() => showPlayBust(true, skullsBeforeRoll), 600);
+            return;
+        }
 
         playState.rollCount++;
 
@@ -921,16 +929,36 @@
         const skullCount = getPlaySkullCount();
         const isStorm = playState.card.id === 'storm';
         const islandThreshold = isStorm ? 3 : 4;
+        const isBattle = playState.card.id.startsWith('battle');
+
+        if (isIslandPhase) {
+            const newSkullsThisRoll = skullCount - skullsBeforeRoll;
+            const diceToRollNext = 8 - skullCount;
+            if (newSkullsThisRoll === 0 || diceToRollNext < 2) {
+                playState.phase = 'bust';
+                setTimeout(() => showPlayBust(true, skullCount), 600);
+                return;
+            }
+            $('#play-roll-btn').textContent = '🎲 הטל שוב (אי הגולגולות)';
+            $('#play-roll-btn').disabled = false;
+            $('#play-stop-btn').classList.add('hidden');
+            $('#play-hint').textContent = '🏝️ צריך גולגולת בהטלה כדי להמשיך! הטל שוב';
+            playState.phase = 'island';
+            return;
+        }
 
         if (skullCount >= 3) {
-            playState.phase = 'bust';
-            const isBattle = playState.card.id.startsWith('battle');
-
-            if (skullCount >= islandThreshold && !isBattle) {
-                setTimeout(() => showPlayBust(true, skullCount), 600);
-            } else {
-                setTimeout(() => showPlayBust(false, skullCount), 600);
+            if (skullCount >= islandThreshold && !isBattle && playState.rollCount === 1) {
+                playState.phase = 'island';
+                $('#play-roll-btn').textContent = '🎲 הטל שוב (אי הגולגולות)';
+                $('#play-roll-btn').disabled = false;
+                $('#play-stop-btn').classList.add('hidden');
+                $('#play-hint').textContent = '🏝️ אי הגולגולות! הטל את הקוביות הנותרות - צריך גולגולת כדי להמשיך';
+                return;
             }
+            playState.phase = 'bust';
+            const isIslandBust = skullCount >= islandThreshold && !isBattle && playState.rollCount === 1;
+            setTimeout(() => showPlayBust(isIslandBust, skullCount), 600);
             return;
         }
 
@@ -1316,7 +1344,7 @@
         });
         $('#play-card').addEventListener('click', drawCard);
         $('#play-roll-btn').addEventListener('click', () => {
-            if (playState.phase === 'roll') rollDice();
+            if (playState.phase === 'roll' || playState.phase === 'island') rollDice();
             else if (playState.phase === 'pick') prepareReroll();
         });
         $('#play-stop-btn').addEventListener('click', stopAndScore);
