@@ -864,6 +864,8 @@
 
         $('#play-dice-area').classList.remove('hidden');
         $('#play-roll-btn').classList.remove('hidden');
+        $('#play-roll-btn').disabled = false;
+        $('#play-roll-btn').textContent = '🎲 הטל קוביות';
         $('#play-stop-btn').classList.add('hidden');
         $('#play-hint').textContent = 'לחץ "הטל קוביות" להתחיל';
 
@@ -1341,6 +1343,8 @@
             setupScreen.classList.add('active');
         }
     }
+
+    window._playTurn = openPlayMode;
 
     document.addEventListener('DOMContentLoaded', init);
 })();
