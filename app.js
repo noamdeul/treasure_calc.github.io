@@ -1071,7 +1071,25 @@
 
         if (playState.phase === 'pick') {
             $('#play-roll-btn').disabled = !canRoll;
-            if (!canRoll) {
+
+            const isBattleCard = playState.card && playState.card.id.startsWith('battle');
+            if (isBattleCard) {
+                const req = parseInt(playState.card.id.replace('battle', ''));
+                const swordCount = playState.dice.filter(d => d === 'sword').length;
+                if (swordCount < req) {
+                    $('#play-stop-btn').classList.add('hidden');
+                    if (!canRoll) {
+                        $('#play-hint').textContent = `⚔️ כישלון! צריך ${req} חרבות אבל יש רק ${swordCount} ואין קוביות להטלה`;
+                        playState.phase = 'bust';
+                        setTimeout(() => showPlayBust(false, skullCount), 600);
+                    } else {
+                        $('#play-hint').textContent = `⚔️ צריך ${req} חרבות! (יש ${swordCount}) - חייב להמשיך להטיל`;
+                    }
+                } else {
+                    $('#play-stop-btn').classList.remove('hidden');
+                    $('#play-hint').textContent = `⚔️ יש ${swordCount} חרבות! אפשר לעצור או להמשיך`;
+                }
+            } else if (!canRoll) {
                 $('#play-hint').textContent = 'אין מספיק קוביות חופשיות להטלה נוספת';
             }
         }
@@ -1208,6 +1226,14 @@
 
     function stopAndScore() {
         if (playState.phase !== 'pick') return;
+
+        const isBattleCard = playState.card && playState.card.id.startsWith('battle');
+        if (isBattleCard) {
+            const req = parseInt(playState.card.id.replace('battle', ''));
+            const swordCount = playState.dice.filter(d => d === 'sword').length;
+            if (swordCount < req) return;
+        }
+
         const score = calcPlayScore();
         finishPlayTurn(score, false, false);
     }
